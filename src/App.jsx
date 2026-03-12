@@ -1,62 +1,62 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 export default function App() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
 
-  function sendMessage() {
-    if (!input.trim()) return;
+  const [messages, setMessages] = useState([]);
+
+  async function sendMessage(text) {
+
+    const newMessages = [...messages, { role: "user", text }];
+    setMessages(newMessages);
+
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await res.json();
 
     setMessages([
-      ...messages,
-      { role: "user", text: input },
-      { role: "ai", text: "Demo Antwort: " + input }
+      ...newMessages,
+      { role: "assistant", text: data.reply }
     ]);
-
-    setInput("");
   }
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#212121", color: "white", fontFamily: "Arial" }}>
-      
-      <div style={{ width: "260px", background: "#171717", padding: "20px" }}>
+    <div style={{ display: "flex", height: "100vh", fontFamily: "Arial" }}>
+
+      {/* Sidebar */}
+      <div style={{ width: 250, background: "#111", color: "white", padding: 20 }}>
         <h2>chatAigpt</h2>
-        <button style={{ width: "100%", padding: "10px", marginTop: "10px" }}>
+        <button style={{ width: "100%", padding: 10 }}>
           + Neuer Chat
         </button>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      {/* Chat Bereich */}
+      <div style={{ flex: 1, background: "#1e1e1e", color: "white", display: "flex", flexDirection: "column" }}>
 
-        <div style={{ flex: 1, padding: "20px", overflow: "auto" }}>
+        <div style={{ flex: 1, padding: 20 }}>
           {messages.map((m, i) => (
-            <div key={i} style={{ marginBottom: "15px", textAlign: m.role === "user" ? "right" : "left" }}>
-              <div style={{
-                display: "inline-block",
-                background: m.role === "user" ? "#303030" : "#2a2a2a",
-                padding: "10px 15px",
-                borderRadius: "10px"
-              }}>
-                {m.text}
-              </div>
+            <div key={i} style={{ marginBottom: 10 }}>
+              <b>{m.role === "user" ? "Du" : "AI"}:</b> {m.text}
             </div>
           ))}
         </div>
 
-        <div style={{ padding: "20px" }}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Nachricht senden..."
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "none"
-            }}
-          />
-        </div>
+        <input
+          placeholder="Nachricht senden..."
+          style={{ padding: 15, border: "none" }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              sendMessage(e.target.value);
+              e.target.value = "";
+            }
+          }}
+        />
 
       </div>
     </div>
