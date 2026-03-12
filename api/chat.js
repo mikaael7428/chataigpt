@@ -4,6 +4,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    const { message } = req.body;
+
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -12,18 +14,18 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4.1-mini",
-        input: req.body.messages
+        input: message
       })
     });
 
     const data = await response.json();
+
     const reply =
       data.output_text ||
-      data.output?.[0]?.content?.[0]?.text ||
       "Keine Antwort erhalten.";
 
     return res.status(200).json({ reply });
   } catch (error) {
-    return res.status(500).json({ error: "Serverfehler" });
+    return res.status(500).json({ reply: "Serverfehler" });
   }
 }
